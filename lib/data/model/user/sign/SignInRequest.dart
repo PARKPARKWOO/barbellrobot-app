@@ -11,10 +11,14 @@ class SignInRequest {
   Map<String, dynamic> toJson() => {'email': email, 'password': password};
 }
 
-Future<http.Response> signIn(String email, String password) async {
-  final url = Uri.parse('http://your_server_address/api/v1/email/member');
+Future<http.Response> signIn(String email, String password, String type) async {
+  // 환경에 맞게 수정
+  final baseUrl = '10.0.2.2';
+
+  final url = Uri.parse('http://$baseUrl:8080/api/v1/sign-in/email/$type');
   final requestBody = SignInRequest(email: email, password: password).toJson(); // Use toJson() if needed
 
+  // status 분기처리
   final response = await http.post(
     url,
     headers: {'Content-Type': 'application/json'},
