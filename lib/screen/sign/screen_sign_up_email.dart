@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:health/config/app_configs.dart';
 import 'package:health/data/model/user/sign/SignUpDetails.dart';
+import 'package:health/data/model/user/sign/VerifyAuthNumberRequest.dart';
 import 'package:health/screen/sign/screen_sign_up_member_detail.dart';
 import 'package:health/screen/sign/screen_sign_up_trainer_detail.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 import '../../data/model/user/sign/SendEmailVerifyRequest.dart';
@@ -30,11 +33,15 @@ class _SignUpEmailState extends State<SignUpEmail> {
   bool _isNicknameValid = false;
 
   // url
-  var baseUrl = '10.0.2.2';
+  var baseUrl = AppConfigs().apiUrl;
+  Future<String?> loadAuthenticationString() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('authenticationString');
+  }
+
 
   Future<void> verifyNickname(String nickname) async {
-    var url = Uri.parse(
-        'http://$baseUrl:8080/api/v1/sign-up/verify/nickname/$nickname');
+    var url = Uri.parse('$baseUrl/sign-up/verify/nickname/$nickname');
     var response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -119,8 +126,9 @@ class _SignUpEmailState extends State<SignUpEmail> {
                           } else {
                             // 이메일 인증 요청 처리 실패
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(
-                                  '인증 메일 발송에 실패했습니다. 이메일 주소를 확인해주세요.')),
+                              SnackBar(
+                                  content: Text(
+                                      '인증 메일 발송에 실패했습니다. 이메일 주소를 확인해주세요.')),
                             );
                           }
                         } else {
@@ -129,9 +137,7 @@ class _SignUpEmailState extends State<SignUpEmail> {
                           );
                         }
                       },
-                      color: Theme
-                          .of(context)
-                          .primaryColor, // 아이콘 색상 설정
+                      color: Theme.of(context).primaryColor, // 아이콘 색상 설정
                     ),
                   ],
                 ),
@@ -142,16 +148,51 @@ class _SignUpEmailState extends State<SignUpEmail> {
                       child: TextFormField(
                         controller: authNumberController,
                         decoration: InputDecoration(labelText: '인증번호 입력'),
+                        keyboardType: TextInputType.number,
+                        // 키보드 타입을 숫자로 설정합니다.
+                        validator: (value) {
+                          if (value == null ||
+                              value.isEmpty ||
+                              int.tryParse(value) == null) {
+                            return '인증번호는 숫자만 입력해주세요.';
+                          }
+                          return null;
+                        },
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: () {
-                        // TODO: 인증 확인 로직
+                      onPressed: () async {
+                        if (_formKey.currentState!.validate()) {
+                          var authNumber =
+                              int.tryParse(authNumberController.text);
+                          if (authNumber != null) {
+                            // 인증번호 확인 로직 실행 및 결과에 따른 처리
+                            bool isSuccess = await verifyEmail(
+                                emailController.text, authNumber);
+                            if (isSuccess) {
+                              // 인증 성공 메시지 표시
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('인증이 완료되었습니다!')),
+                              );
+                            } else {
+                              // 인증 실패 메시지 표시
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text('인증에 실패하였습니다. 다시 시도해주세요.')),
+                              );
+                            }
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('인증번호를 올바르게 입력해주세요.')),
+                            );
+                          }
+                        }
                       },
                       child: Text('인증 확인'),
                     ),
                   ],
                 ),
+
                 TextFormField(
                   controller: passwordController,
                   decoration: InputDecoration(labelText: '비밀번호'),
@@ -185,37 +226,40 @@ class _SignUpEmailState extends State<SignUpEmail> {
                   ],
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate() && _isNicknameValid) {
+                  onPressed: () async {
+                    String? authenticationString = await loadAuthenticationString();
+                    if (_formKey.currentState!.validate() && _isNicknameValid && authenticationString != null) {
                       if (widget.type == 'member') {
                         SignUpMemberDetails signUpDetails = SignUpMemberDetails(
                           email: emailController.text,
                           password: passwordController.text,
                           nickname: nicknameController.text,
-                          gender: _gender, // 'MALE' 또는 'FEMALE'
+                          gender: _gender,
+                          // 'MALE' 또는 'FEMALE'
+                          authenticationString: authenticationString,
                           // 다른 필드들은 SignUpPageTwo에서 입력받음
                         );
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                SignUpMemberPageTwo(
-                                    signUpDetails: signUpDetails),
+                            builder: (context) => SignUpMemberPageTwo(
+                                signUpDetails: signUpDetails),
                           ),
                         );
                       } else if (widget.type == 'trainer') {
-                        SignUpTrainerDetails signUpDetails = SignUpTrainerDetails(
-                            email: emailController.text,
-                            password: passwordController.text,
-                            nickname: nicknameController.text,
-                            gender: _gender
+                        SignUpTrainerDetails signUpDetails =
+                            SignUpTrainerDetails(
+                          email: emailController.text,
+                          password: passwordController.text,
+                          nickname: nicknameController.text,
+                          gender: _gender,
+                          authenticationString: authNumberController.text,
                         );
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                SignUpTrainerPageTwo(
-                                    signUpDetails: signUpDetails),
+                            builder: (context) => SignUpTrainerPageTwo(
+                                signUpDetails: signUpDetails),
                           ),
                         );
                       }

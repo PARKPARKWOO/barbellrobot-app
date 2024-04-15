@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:health/config/app_configs.dart';
 import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
 
@@ -106,7 +107,8 @@ Future<void> signUp({
   required String type,
 }) async {
   final baseUrl = '10.0.2.2';
-  final url = Uri.parse('http://$baseUrl:8080/api/v1/sign-up/email/$type');
+  final apiUrl = AppConfigs().apiUrl;
+  final url = Uri.parse('$apiUrl/sign-up/email/$type');
 
   var requestBody;
 

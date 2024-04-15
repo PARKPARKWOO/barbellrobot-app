@@ -120,7 +120,10 @@ class LoginPage extends StatelessWidget {
                 child: ElevatedButton(
                   onPressed: () async {
                     // http request
-                    signIn(emailController.text, passwordController.text, type);
+                    var response = signIn(emailController.text, passwordController.text, type);
+                    if (response == null) {
+                      // TODO: Login 실패처리 해야함
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple, // 버튼 색상을 변경합니다.

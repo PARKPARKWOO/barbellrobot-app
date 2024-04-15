@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:health/config/app_configs.dart';
 import 'package:http/http.dart' as http;
 
 class SendEmailVerifyRequest {
@@ -9,8 +10,8 @@ class SendEmailVerifyRequest {
 }
 
 Future<bool> sendEmailVerifyRequest(String email) async {
-  var baseUrl = '10.0.2.2';
-  var url = Uri.parse('http://$baseUrl:8080/api/v1/sign-up/send/email-verify');
+  var apiUrl = AppConfigs().apiUrl;
+  var url = Uri.parse('$apiUrl/sign-up/send/email-verify');
   var response = await http.post(
     url,
     headers: {'Content-Type': 'application/json'},
@@ -28,8 +29,8 @@ Future<bool> sendEmailVerifyRequest(String email) async {
 }
 
 Future<void> verifyAuthenticationNumber(String email, int authenticationNumber) async {
-  var baseUrl = '10.0.2.2';
-  var url = Uri.parse('http://$baseUrl:8080/api/sign-up/verify');
+  var apiUrl = AppConfigs().apiUrl;
+  var url = Uri.parse('$apiUrl/sign-up/verify');
   var response = await http.post(
     url,
     headers: {'Content-Type': 'application/json'},

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:health/data/model/user/sign/SignUpDetails.dart';
+import 'package:health/screen/main/screen_member_main.dart';
+
+import '../../data/model/user/sign/SignUpRequest.dart';
 
 class SignUpMemberPageTwo extends StatefulWidget {
   final SignUpMemberDetails signUpDetails;
 
-  SignUpMemberPageTwo({Key? key, required this.signUpDetails}) : super(key: key);
+  SignUpMemberPageTwo({Key? key, required this.signUpDetails})
+      : super(key: key);
 
   @override
   _SignUpMemberPageTwoState createState() => _SignUpMemberPageTwoState();
@@ -67,8 +71,36 @@ class _SignUpMemberPageTwoState extends State<SignUpMemberPageTwo> {
                   keyboardType: TextInputType.number,
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    // 여기서 최종 회원가입 로직을 처리합니다.
+                  onPressed: () async {
+                    // 회원가입 로직을 처리합니다.
+                    await signUp(
+                      email: widget.signUpDetails.email,
+                      nickname: widget.signUpDetails.nickname,
+                      password: widget.signUpDetails.password,
+                      gender: widget.signUpDetails.gender,
+                      age: int.tryParse(ageController.text),
+                      exerciseMonths:
+                          int.tryParse(exerciseMonthsController.text),
+                      tall: double.tryParse(heightController.text),
+                      weight: double.tryParse(weightController.text),
+                      skeletalMuscleMass:
+                          double.tryParse(skeletalMuscleMassController.text),
+                      authenticationString:
+                          widget.signUpDetails.authenticationString,
+                      type: 'member', // 또는 'trainer', 상황에 따라 결정
+                    ).then((_) {
+                      // 회원가입 성공 후 로그인 화면으로 이동
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (context) => MemberMainPage()),
+                        (Route<dynamic> route) => false,
+                      );
+                    }).catchError((error) {
+                      // 오류 처리
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('회원가입 실패: $error')),
+                      );
+                    });
                   },
                   child: Text('회원가입 완료'),
                 ),

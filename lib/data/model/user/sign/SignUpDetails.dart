@@ -8,12 +8,14 @@ class SignUpMemberDetails {
   double? weight;
   double? skeletalMuscleMass;
   int? exerciseMonths;
+  String authenticationString;
 
   SignUpMemberDetails({
     required this.email,
     required this.password,
     required this.nickname,
     required this.gender,
+    required this.authenticationString,
     this.age,
     this.height,
     this.weight,
@@ -27,10 +29,12 @@ class SignUpTrainerDetails {
   String password;
   String nickname;
   String gender;
+  String authenticationString;
   SignUpTrainerDetails({
     required this.email,
     required this.password,
     required this.nickname,
     required this.gender,
+    required this.authenticationString,
   });
 }

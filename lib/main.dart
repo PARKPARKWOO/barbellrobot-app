@@ -1,25 +1,38 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
-import 'package:health/config/app_configs.dart';
+import 'package:intl/date_symbol_data_local.dart'; // 수정된 임포트
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health/screen/screen_home.dart';
 import 'package:health/screen/sign/screen_sign_in.dart';
-import 'package:http/http.dart' as http;
-import 'data/model/user/sign/SignInRequest.dart';
 
-void main() {
-  runApp(const MyApp());
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // 비동기 작업을 시작하기 전에 필요합니다.
+  await initializeDateFormatting(); // 날짜 형식 데이터 초기화
+  final prefs = await SharedPreferences.getInstance();
+  final String? accessToken = prefs.getString('accessToken');
+  runApp(MyApp(
+    initialRoute: accessToken == null ? '/signIn' : '/home',
+  ));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+
+  const MyApp({super.key, required this.initialRoute});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: "Health",
-      home: SignInScreen(),
+      initialRoute: initialRoute,
+      routes: {
+        '/signIn': (context) => SignInScreen(),
+        '/home': (context) => HomeScreen(),
+      },
+      supportedLocales: [
+        Locale('en', ''), // 영어
+        Locale('ko', ''), // 한국어
+      ],
     );
   }
 }
