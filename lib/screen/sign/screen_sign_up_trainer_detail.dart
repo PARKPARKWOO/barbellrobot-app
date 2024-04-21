@@ -10,5 +10,4 @@ class SignUpTrainerPageTwo extends StatefulWidget {
     // TODO: implement createState
     throw UnimplementedError();
   }
-
 }

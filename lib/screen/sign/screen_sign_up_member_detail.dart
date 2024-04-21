@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:health/data/model/user/sign/SignUpDetails.dart';
 import 'package:health/screen/main/screen_member_main.dart';
+import 'package:health/screen/sign/screen_sign_in.dart';
 
 import '../../data/model/user/sign/SignUpRequest.dart';
 
@@ -92,7 +93,7 @@ class _SignUpMemberPageTwoState extends State<SignUpMemberPageTwo> {
                       // 회원가입 성공 후 로그인 화면으로 이동
                       Navigator.pushAndRemoveUntil(
                         context,
-                        MaterialPageRoute(builder: (context) => MemberMainPage()),
+                        MaterialPageRoute(builder: (context) => SignInScreen()),
                         (Route<dynamic> route) => false,
                       );
                     }).catchError((error) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:health/screen/main/screen_member_main.dart';
 import 'package:intl/date_symbol_data_local.dart'; // 수정된 임포트
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health/screen/screen_home.dart';
@@ -10,8 +11,12 @@ void main() async {
   await initializeDateFormatting(); // 날짜 형식 데이터 초기화
   final prefs = await SharedPreferences.getInstance();
   final String? accessToken = prefs.getString('accessToken');
+  String? type;
+  if (accessToken != null) {
+    type = prefs.getString('type');
+  }
   runApp(MyApp(
-    initialRoute: accessToken == null ? '/signIn' : '/home',
+    initialRoute: accessToken == null ? '/signIn' : '/$type/home',
   ));
 }
 
@@ -27,7 +32,7 @@ class MyApp extends StatelessWidget {
       initialRoute: initialRoute,
       routes: {
         '/signIn': (context) => SignInScreen(),
-        '/home': (context) => HomeScreen(),
+        '/member/home': (context) => MemberMainPage(),
       },
       supportedLocales: [
         Locale('en', ''), // 영어

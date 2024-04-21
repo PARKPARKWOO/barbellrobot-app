@@ -16,31 +16,36 @@ class SignInRequest {
   Map<String, dynamic> toJson() => {'email': email, 'password': password};
 }
 
-Future<JwtTokenModel?> signIn(String email, String password, String type) async {
-  // 환경에 맞게 수정
-  final baseUrl = '10.0.2.2';
-  final apiUrl = AppConfigs().apiUrl;
-  final url = Uri.parse('$apiUrl/sign-in/email/$type');
-  final requestBody = SignInRequest(email: email, password: password).toJson(); // Use toJson() if needed
+Future<bool> signIn(
+    String email, String password, String type) async {
+  try {
+    final apiUrl = AppConfigs().apiUrl;
+    final url = Uri.parse('$apiUrl/sign-in/email/$type');
+    final requestBody = SignInRequest(email: email, password: password)
+        .toJson(); // Use toJson() if needed
 
-  // status 분기처리
-  final response = await http.post(
-    url,
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode(requestBody), // Encode request body as JSON
-  );
-  if (response.statusCode == 200) {
-    if (jsonDecode(response.body)['success']) {
-      var json = jsonDecode(response.body)['data'];
-      var result = JwtTokenModel(
-        accessToken: json['accessToken'],
-        refreshToken: json['refreshToken'],
-      );
-      final SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('accessToken', result.accessToken);
-      await prefs.setString('refreshToken', result.refreshToken);
-      return result;
+    // status 분기처리
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(requestBody), // Encode request body as JSON
+    );
+    if (response.statusCode == 200) {
+      if (jsonDecode(response.body)['success']) {
+        var json = jsonDecode(response.body)['data'];
+        var result = JwtTokenModel(
+          accessToken: json['accessToken'],
+          refreshToken: json['refreshToken'],
+        );
+        final SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString('accessToken', result.accessToken);
+        await prefs.setString('refreshToken', result.refreshToken);
+        await prefs.setString('type', type);
+        return true;
+      }
     }
+  } catch (e) {
+    return false;
   }
-  return null;
+  return false;
 }
