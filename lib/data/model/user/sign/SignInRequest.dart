@@ -30,6 +30,7 @@ Future<bool> signIn(
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(requestBody), // Encode request body as JSON
     );
+
     if (response.statusCode == 200) {
       if (jsonDecode(response.body)['success']) {
         var json = jsonDecode(response.body)['data'];
