@@ -154,8 +154,10 @@ class LoginPage extends StatelessWidget {
                 bool response = await signIn(emailController.text, passwordController.text, type);
                 print("login = ${response}");
                 if (response == false) {
-                  print("로그인 실패");
-                  return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                        content: Text('로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요')),
+                  );
                 } else if (type == 'member') {
                   Navigator.pushAndRemoveUntil(
                     context,

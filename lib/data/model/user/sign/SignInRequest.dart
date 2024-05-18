@@ -25,11 +25,15 @@ Future<bool> signIn(
         .toJson(); // Use toJson() if needed
 
     // status 분기처리
+    Map<String, String> header = {
+      'Content-Type': 'application/json',
+    };
     final response = await http.post(
       url,
-      headers: {'Content-Type': 'application/json'},
+      headers: header,
       body: jsonEncode(requestBody), // Encode request body as JSON
     );
+
     if (response.statusCode == 200) {
       if (jsonDecode(response.body)['success']) {
         var json = jsonDecode(response.body)['data'];
@@ -45,6 +49,7 @@ Future<bool> signIn(
       }
     }
   } catch (e) {
+    print(e.toString());
     return false;
   }
   return false;

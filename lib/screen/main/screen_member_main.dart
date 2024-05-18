@@ -1,7 +1,11 @@
+import 'dart:collection';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:health/appbar/navigator/CustomAppBar.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:health/data/model/history/HistoryModel.dart';
+import 'package:health/screen/main/screen_member_calendar.dart';
+
+import '../../appbar/navigator/CustomAppBar.dart';
 
 class MemberMainPage extends StatefulWidget {
   const MemberMainPage({super.key});
@@ -14,42 +18,45 @@ class _MemberMainPageState extends State<MemberMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('내 운동 기록'),
-        ),
-        body: SingleChildScrollView(
-          child: Container(
-            height: 600,
-            child: TableCalendar(
-              locale: 'ko_KR',
-              firstDay: DateTime.utc(2010, 10, 16),
-              lastDay: DateTime.utc(2030, 3, 14),
-              focusedDay: DateTime.now(),
-              calendarFormat: CalendarFormat.month,
-              startingDayOfWeek: StartingDayOfWeek.monday,
-              headerStyle: HeaderStyle(
-                formatButtonVisible: false,
-                titleCentered: true,
-              ),
-              daysOfWeekStyle: DaysOfWeekStyle(
-                weekendStyle: TextStyle().copyWith(color: Colors.red),
-              ),
-              calendarStyle: CalendarStyle(
-                todayDecoration: BoxDecoration(
-                  color: Colors.blue,
-                  shape: BoxShape.circle,
-                ),
-                selectedDecoration: BoxDecoration(
-                  color: Colors.orange,
-                  shape: BoxShape.circle,
-                ),
-                weekendTextStyle: TextStyle().copyWith(color: Colors.red),
-              ),
-              onDaySelected: (selectedDay, focusedDay) {
-                // 날짜 선택 로직
-              },
-            ),
+      appBar: CustomAppBar(
+        title: '운동 관리',
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              // 설정 화면으로 이동 또는 설정 관련 로직
+              print('Settings tapped');
+            },
           ),
-        ));
+        ],
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () async {
+                var historyList = await historyRequest();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CalendarPage(historyList: historyList),
+                  ),
+                );
+              },
+              child: Text('운동 기록 보기'),
+            ),
+            SizedBox(height: 20),  // 버튼 사이의 간격
+            ElevatedButton(
+              onPressed: () {
+                // "운동 시작하기" 버튼 로직
+
+              },
+              child: Text('운동 시작하기'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
