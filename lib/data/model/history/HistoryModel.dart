@@ -86,14 +86,21 @@ class TodayHistoryModel {
       id: json['userHistoryResponse']['id'] as String,
       today: today,
       attendance: json['userHistoryResponse']['attendance'] as bool,
-      breakfastImageUri: List<String>.from(json['userHistoryResponse']['breakfastImageUri']),
-      breakfastFoods: List<String>.from(json['userHistoryResponse']['breakfastFoods']),
-      lunchImageUri: List<String>.from(json['userHistoryResponse']['lunchImageUri']),
+      breakfastImageUri:
+          List<String>.from(json['userHistoryResponse']['breakfastImageUri']),
+      breakfastFoods:
+          List<String>.from(json['userHistoryResponse']['breakfastFoods']),
+      lunchImageUri:
+          List<String>.from(json['userHistoryResponse']['lunchImageUri']),
       lunchFoods: List<String>.from(json['userHistoryResponse']['lunchFoods']),
-      dinnerImageUri: List<String>.from(json['userHistoryResponse']['dinnerImageUri']),
-      dinnerFoods: List<String>.from(json['userHistoryResponse']['dinnerFoods']),
-      todayImageUri: List<String>.from(json['userHistoryResponse']['todayImageUri']),
-      todayVideoUri: List<String>.from(json['userHistoryResponse']['todayVideoUri']),
+      dinnerImageUri:
+          List<String>.from(json['userHistoryResponse']['dinnerImageUri']),
+      dinnerFoods:
+          List<String>.from(json['userHistoryResponse']['dinnerFoods']),
+      todayImageUri:
+          List<String>.from(json['userHistoryResponse']['todayImageUri']),
+      todayVideoUri:
+          List<String>.from(json['userHistoryResponse']['todayVideoUri']),
       exerciseHistoryResponse: (json['exerciseHistoryResponse'] as List)
           .map((exercise) => ExerciseHistoryResponse.fromJson(exercise))
           .toList(),
@@ -121,7 +128,8 @@ class ExerciseHistoryResponse {
   factory ExerciseHistoryResponse.fromJson(Map<String, dynamic> json) {
     // 날짜 리스트를 DateTime 객체로 변환
     List<int> createdAtList = List<int>.from(json['createdAt']);
-    DateTime createdAt = DateTime(createdAtList[0], createdAtList[1], createdAtList[2]);
+    DateTime createdAt =
+        DateTime(createdAtList[0], createdAtList[1], createdAtList[2]);
 
     return ExerciseHistoryResponse(
       id: json['id'] as int,
@@ -134,28 +142,49 @@ class ExerciseHistoryResponse {
   }
 }
 
+// Future<List<TodayHistoryModel>> historyRequest() async {
+//   var baseUrl = AppConfigs().apiUrl;
+//   var apiUrl = '$baseUrl/history/month';
+//   var http = CustomHttpClient(); // 이 부분은 사용자 정의 HTTP 클라이언트로 가정
+//
+//   var response = await http.get<ApiResponse<List<TodayHistoryModel>>>(apiUrl, create: (Map<String, dynamic> ) {  });
+//
+//   if (response.statusCode == 200) {
+//     // JSON 응답을 정확하게 파싱
+//     Map<String, dynamic> jsonResponse = json.decode(response.body);
+//     var userHistoryData = jsonResponse['data'] as List<dynamic>; // 여러 UserHistory 객체를 담고 있는 리스트를 예상
+//
+//     if (userHistoryData != null) {
+//       print(userHistoryData.toString());
+//       // UserHistory 데이터 파싱
+//       return userHistoryData
+//           .map((data) => TodayHistoryModel.fromJson(data as Map<String, dynamic>))
+//           .toList();
+//     } else {
+//       throw Exception('User history data is missing in the response');
+//     }
+//   } else {
+//     throw Exception('Failed to load user history: ${response.statusCode}');
+//   }
+// }
+
 Future<List<TodayHistoryModel>> historyRequest() async {
   var baseUrl = AppConfigs().apiUrl;
   var apiUrl = '$baseUrl/history/month';
-  var http = CustomHttpClient(); // 이 부분은 사용자 정의 HTTP 클라이언트로 가정
+  var http = CustomHttpClient();
 
-  var response = await http.get(apiUrl);
+  var response = await http.get<ApiResponse<List<TodayHistoryModel>>>(apiUrl, create: (Map<String, dynamic> json) {
+    var list = json['data'] as List;
+    return ApiResponse(success: json['success'], data: list.map((item) => TodayHistoryModel.fromJson(item)).toList());
+  });
 
-  if (response.statusCode == 200) {
-    // JSON 응답을 정확하게 파싱
-    Map<String, dynamic> jsonResponse = json.decode(response.body);
-    var userHistoryData = jsonResponse['data'] as List<dynamic>; // 여러 UserHistory 객체를 담고 있는 리스트를 예상
-
-    if (userHistoryData != null) {
-      print(userHistoryData.toString());
-      // UserHistory 데이터 파싱
-      return userHistoryData
-          .map((data) => TodayHistoryModel.fromJson(data as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw Exception('User history data is missing in the response');
-    }
+  if (response is ApiResponse<List<TodayHistoryModel>>) {
+    return response.data;
+  } else if (response is ErrorResponse) {
+    // Handle the error response
+    print('Error: ${response.message}');
+    return [];
   } else {
-    throw Exception('Failed to load user history: ${response.statusCode}');
+    throw Exception('Unexpected response type');
   }
 }

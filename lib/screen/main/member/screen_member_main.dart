@@ -3,9 +3,11 @@ import 'dart:collection';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:health/data/model/history/HistoryModel.dart';
-import 'package:health/screen/main/screen_member_calendar.dart';
+import 'package:health/screen/main/member/screen_member_calendar.dart';
+import 'package:health/screen/main/member/screen_member_exercise.dart';
 
-import '../../appbar/navigator/CustomAppBar.dart';
+import '../../../appbar/navigator/CustomAppBar.dart';
+import '../../../data/model/history/StartExercise.dart';
 
 class MemberMainPage extends StatefulWidget {
   const MemberMainPage({super.key});
@@ -40,17 +42,25 @@ class _MemberMainPageState extends State<MemberMainPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CalendarPage(historyList: historyList),
+                    builder: (context) =>
+                        CalendarPage(historyList: historyList),
                   ),
                 );
               },
               child: Text('운동 기록 보기'),
             ),
-            SizedBox(height: 20),  // 버튼 사이의 간격
+            SizedBox(height: 20), // 버튼 사이의 간격
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                String userHistoryId = await attendance();
                 // "운동 시작하기" 버튼 로직
-
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        MemberExercisePage(userHistoryId: userHistoryId),
+                  ),
+                );
               },
               child: Text('운동 시작하기'),
             ),

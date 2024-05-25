@@ -1,9 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../../config/app_configs.dart';
 
 class CustomHttpClient {
   static final CustomHttpClient _singleton = CustomHttpClient._internal();
@@ -12,7 +9,7 @@ class CustomHttpClient {
 
   CustomHttpClient._internal();
 
-  Future<http.Response> get(String url, {Map<String, String>? headers}) async {
+  Future<dynamic> get<T>(String url, {Map<String, String>? headers, required T Function(Map<String, dynamic>) create}) async {
     final prefs = await SharedPreferences.getInstance();
     final String? accessToken = prefs.getString('accessToken');
 
@@ -23,12 +20,12 @@ class CustomHttpClient {
     if (headers != null) {
       header.addAll(headers);
     }
+
     final response = await http.get(Uri.parse(url), headers: header);
-    return _handleResponse(response);
+    return _handleResponse(response, create, requestType: 'GET', url: url, headers: header);
   }
 
-  Future<http.Response> post(String url,
-      {Map<String, String>? headers, dynamic body, Encoding? encoding}) async {
+  Future<dynamic> post<T>(String url, {Map<String, String>? headers, dynamic body, Encoding? encoding, required T Function(Map<String, dynamic>) create}) async {
     final prefs = await SharedPreferences.getInstance();
     final String? accessToken = prefs.getString('accessToken');
 
@@ -41,31 +38,42 @@ class CustomHttpClient {
     }
 
     final response = await http.post(Uri.parse(url),
-        headers: header, body: body, encoding: encoding);
-    return _handleResponse(response);
+        headers: header, body: jsonEncode(body), encoding: encoding);
+    return _handleResponse(response, create, requestType: 'POST', url: url, headers: header, body: body, encoding: encoding);
   }
 
-  // Add other HTTP methods as needed (put, delete, etc.)
+  Future<dynamic> _handleResponse<T>(http.Response response, T Function(Map<String, dynamic>) create, {required String requestType, required String url, Map<String, String>? headers, dynamic body, Encoding? encoding}) async {
+    final Map<String, dynamic> responseJson = jsonDecode(response.body);
 
-  Future<http.Response> _handleResponse(http.Response response) async {
     if (response.statusCode == 200) {
-      var jsonResponse = json.decode(response.body);
-      print(jsonResponse.toString());
-      if (jsonResponse['success'] == false &&
-          jsonResponse['code'] == 'EXPIRED_JWT') {
+      if (responseJson['success'] == false && responseJson['code'] == 'EXPIRED_JWT') {
         await refreshToken();
-        // Optionally, you could retry the original request here. Be careful with recursion and ensure safe exit conditions.
-        return await http
-            .get(response.request!.url); // Example retry for GET request
+
+        if (requestType == 'GET') {
+          return get<T>(url, headers: headers, create: create);
+        } else if (requestType == 'POST') {
+          return post<T>(url, headers: headers, body: body, encoding: encoding, create: create);
+        }
       }
+
+      if (responseJson['success'] == false) {
+        return ErrorResponse.fromJson(responseJson);
+      }
+
+      return ApiResponse<T>.fromJson(responseJson, create);
+    } else {
+      return ErrorResponse(
+        success: false,
+        message: 'Unexpected error',
+        code: response.statusCode.toString(),
+      );
     }
-    return response; // Return the original or retried response
   }
 
   Future<void> refreshToken() async {
     final prefs = await SharedPreferences.getInstance();
     String? refreshToken = prefs.getString('refreshToken');
-    var apiUrl = AppConfigs().apiUrl; // Your API base URL
+    var apiUrl = 'YOUR_API_BASE_URL'; // Your API base URL
     Map<String, String> header = {
       'Content-Type': 'application/json',
     };
@@ -74,8 +82,6 @@ class CustomHttpClient {
         headers: header, body: json.encode(data));
 
     if (response.statusCode == 200) {
-      print("object");
-
       var newToken = json.decode(response.body)['data']['accessToken'];
       var newRefreshToken = json.decode(response.body)['data']['refreshToken'];
       prefs.setString('accessToken', newToken);
@@ -83,5 +89,51 @@ class CustomHttpClient {
     } else {
       throw Exception('Failed to refresh token');
     }
+  }
+}
+
+// Common response
+class ApiResponse<T> {
+  bool success;
+  T data;
+
+  ApiResponse({required this.success, required this.data});
+
+  factory ApiResponse.fromJson(Map<String, dynamic> json, Function(Map<String, dynamic>) create) {
+    return ApiResponse(
+      success: json['success'],
+      data: create(json['data']),
+    );
+  }
+
+  Map<String, dynamic> toJson(Function(T) create) {
+    return {
+      'success': success,
+      'data': create(data),
+    };
+  }
+}
+
+class ErrorResponse {
+  bool success;
+  String message;
+  String code;
+
+  ErrorResponse({required this.success, required this.message, required this.code});
+
+  factory ErrorResponse.fromJson(Map<String, dynamic> json) {
+    return ErrorResponse(
+      success: json['success'],
+      message: json['message'],
+      code: json['code'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'success': success,
+      'message': message,
+      'code': code,
+    };
   }
 }
