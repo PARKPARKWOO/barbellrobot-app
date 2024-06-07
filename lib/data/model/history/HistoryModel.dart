@@ -1,52 +1,8 @@
 import 'dart:convert';
 import 'package:health/config/app_configs.dart';
 import 'package:health/data/model/request/CustomHttpClient.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-
-class UserHistory {
-  final String id;
-  final DateTime today;
-  final bool attendance;
-  final List<String>? breakfastImageUri;
-  final List<String>? breakfastFoods;
-  final List<String>? lunchImageUri;
-  final List<String>? lunchFoods;
-  final List<String>? dinnerImageUri;
-  final List<String>? dinnerFoods;
-  final List<String>? todayImageUri;
-  final List<String>? todayVideoUri;
-
-  UserHistory({
-    required this.id,
-    required this.today,
-    required this.attendance,
-    this.breakfastImageUri,
-    this.breakfastFoods,
-    this.lunchImageUri,
-    this.lunchFoods,
-    this.dinnerImageUri,
-    this.dinnerFoods,
-    this.todayImageUri,
-    this.todayVideoUri,
-  });
-
-  factory UserHistory.fromJson(Map<String, dynamic> json) {
-    return UserHistory(
-      id: json['id'],
-      today: DateTime.parse(json['today']),
-      attendance: json['attendance'],
-      breakfastImageUri: List<String>.from(json['breakfastImageUri'] ?? []),
-      breakfastFoods: List<String>.from(json['breakfastFoods'] ?? []),
-      lunchImageUri: List<String>.from(json['lunchImageUri'] ?? []),
-      lunchFoods: List<String>.from(json['lunchFoods'] ?? []),
-      dinnerImageUri: List<String>.from(json['dinnerImageUri'] ?? []),
-      dinnerFoods: List<String>.from(json['dinnerFoods'] ?? []),
-      todayImageUri: List<String>.from(json['todayImageUri'] ?? []),
-      todayVideoUri: List<String>.from(json['todayVideoUri'] ?? []),
-    );
-  }
-}
+import 'package:http/http.dart' as http;
 
 class TodayHistoryModel {
   final String id;
@@ -86,14 +42,14 @@ class TodayHistoryModel {
       id: json['userHistoryResponse']['id'] as String,
       today: today,
       attendance: json['userHistoryResponse']['attendance'] as bool,
-      breakfastImageUri: List<String>.from(json['userHistoryResponse']['breakfastImageUri']),
-      breakfastFoods: List<String>.from(json['userHistoryResponse']['breakfastFoods']),
-      lunchImageUri: List<String>.from(json['userHistoryResponse']['lunchImageUri']),
-      lunchFoods: List<String>.from(json['userHistoryResponse']['lunchFoods']),
-      dinnerImageUri: List<String>.from(json['userHistoryResponse']['dinnerImageUri']),
-      dinnerFoods: List<String>.from(json['userHistoryResponse']['dinnerFoods']),
-      todayImageUri: List<String>.from(json['userHistoryResponse']['todayImageUri']),
-      todayVideoUri: List<String>.from(json['userHistoryResponse']['todayVideoUri']),
+      breakfastImageUri: List<String>.from(json['userHistoryResponse']['breakfastImageUri'] ?? []),
+      breakfastFoods: List<String>.from(json['userHistoryResponse']['breakfastFoods'] ?? []),
+      lunchImageUri: List<String>.from(json['userHistoryResponse']['lunchImageUri'] ?? []),
+      lunchFoods: List<String>.from(json['userHistoryResponse']['lunchFoods'] ?? []),
+      dinnerImageUri: List<String>.from(json['userHistoryResponse']['dinnerImageUri'] ?? []),
+      dinnerFoods: List<String>.from(json['userHistoryResponse']['dinnerFoods'] ?? []),
+      todayImageUri: List<String>.from(json['userHistoryResponse']['todayImageUri'] ?? []),
+      todayVideoUri: List<String>.from(json['userHistoryResponse']['todayVideoUri'] ?? []),
       exerciseHistoryResponse: (json['exerciseHistoryResponse'] as List)
           .map((exercise) => ExerciseHistoryResponse.fromJson(exercise))
           .toList(),
@@ -134,28 +90,49 @@ class ExerciseHistoryResponse {
   }
 }
 
+// Future<List<TodayHistoryModel>> historyRequest() async {
+//   var baseUrl = AppConfigs().apiUrl;
+//   var apiUrl = '$baseUrl/history/month';
+//   var http = CustomHttpClient(); // 이 부분은 사용자 정의 HTTP 클라이언트로 가정
+//
+//   var response = await http.get<ApiResponse<List<TodayHistoryModel>>>(apiUrl, create: (Map<String, dynamic> ) {  });
+//
+//   if (response.statusCode == 200) {
+//     // JSON 응답을 정확하게 파싱
+//     Map<String, dynamic> jsonResponse = json.decode(response.body);
+//     var userHistoryData = jsonResponse['data'] as List<dynamic>; // 여러 UserHistory 객체를 담고 있는 리스트를 예상
+//
+//     if (userHistoryData != null) {
+//       print(userHistoryData.toString());
+//       // UserHistory 데이터 파싱
+//       return userHistoryData
+//           .map((data) => TodayHistoryModel.fromJson(data as Map<String, dynamic>))
+//           .toList();
+//     } else {
+//       throw Exception('User history data is missing in the response');
+//     }
+//   } else {
+//     throw Exception('Failed to load user history: ${response.statusCode}');
+//   }
+// }
+
 Future<List<TodayHistoryModel>> historyRequest() async {
   var baseUrl = AppConfigs().apiUrl;
   var apiUrl = '$baseUrl/history/month';
-  var http = CustomHttpClient(); // 이 부분은 사용자 정의 HTTP 클라이언트로 가정
+  var http = CustomHttpClient();
 
-  var response = await http.get(apiUrl);
+  var response = await http.get<List<TodayHistoryModel>>(apiUrl, create: (json) {
+    var list = json as List<dynamic>;
+    return list.map((item) => TodayHistoryModel.fromJson(item)).toList();
+  });
 
-  if (response.statusCode == 200) {
-    // JSON 응답을 정확하게 파싱
-    Map<String, dynamic> jsonResponse = json.decode(response.body);
-    var userHistoryData = jsonResponse['data'] as List<dynamic>; // 여러 UserHistory 객체를 담고 있는 리스트를 예상
-
-    if (userHistoryData != null) {
-      print(userHistoryData.toString());
-      // UserHistory 데이터 파싱
-      return userHistoryData
-          .map((data) => TodayHistoryModel.fromJson(data as Map<String, dynamic>))
-          .toList();
-    } else {
-      throw Exception('User history data is missing in the response');
-    }
+  if (response is ApiResponse<List<TodayHistoryModel>>) {
+    return response.data;
+  } else if (response is ErrorResponse) {
+    // Handle the error response
+    print('Error: ${response.message}');
+    return [];
   } else {
-    throw Exception('Failed to load user history: ${response.statusCode}');
+    throw Exception('Unexpected response type');
   }
 }

@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:health/screen/main/screen_member_main.dart';
+import 'package:health/screen/main/member/screen_member_main.dart';
 import 'package:health/screen/sign/screen_sign_up_email.dart';
 import 'package:http/http.dart' as http;
 import 'package:health/data/model/user/sign/SignInRequest.dart';
