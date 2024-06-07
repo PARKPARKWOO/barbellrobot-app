@@ -1,52 +1,8 @@
 import 'dart:convert';
 import 'package:health/config/app_configs.dart';
 import 'package:health/data/model/request/CustomHttpClient.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-
-class UserHistory {
-  final String id;
-  final DateTime today;
-  final bool attendance;
-  final List<String>? breakfastImageUri;
-  final List<String>? breakfastFoods;
-  final List<String>? lunchImageUri;
-  final List<String>? lunchFoods;
-  final List<String>? dinnerImageUri;
-  final List<String>? dinnerFoods;
-  final List<String>? todayImageUri;
-  final List<String>? todayVideoUri;
-
-  UserHistory({
-    required this.id,
-    required this.today,
-    required this.attendance,
-    this.breakfastImageUri,
-    this.breakfastFoods,
-    this.lunchImageUri,
-    this.lunchFoods,
-    this.dinnerImageUri,
-    this.dinnerFoods,
-    this.todayImageUri,
-    this.todayVideoUri,
-  });
-
-  factory UserHistory.fromJson(Map<String, dynamic> json) {
-    return UserHistory(
-      id: json['id'],
-      today: DateTime.parse(json['today']),
-      attendance: json['attendance'],
-      breakfastImageUri: List<String>.from(json['breakfastImageUri'] ?? []),
-      breakfastFoods: List<String>.from(json['breakfastFoods'] ?? []),
-      lunchImageUri: List<String>.from(json['lunchImageUri'] ?? []),
-      lunchFoods: List<String>.from(json['lunchFoods'] ?? []),
-      dinnerImageUri: List<String>.from(json['dinnerImageUri'] ?? []),
-      dinnerFoods: List<String>.from(json['dinnerFoods'] ?? []),
-      todayImageUri: List<String>.from(json['todayImageUri'] ?? []),
-      todayVideoUri: List<String>.from(json['todayVideoUri'] ?? []),
-    );
-  }
-}
+import 'package:http/http.dart' as http;
 
 class TodayHistoryModel {
   final String id;
@@ -86,21 +42,14 @@ class TodayHistoryModel {
       id: json['userHistoryResponse']['id'] as String,
       today: today,
       attendance: json['userHistoryResponse']['attendance'] as bool,
-      breakfastImageUri:
-          List<String>.from(json['userHistoryResponse']['breakfastImageUri']),
-      breakfastFoods:
-          List<String>.from(json['userHistoryResponse']['breakfastFoods']),
-      lunchImageUri:
-          List<String>.from(json['userHistoryResponse']['lunchImageUri']),
-      lunchFoods: List<String>.from(json['userHistoryResponse']['lunchFoods']),
-      dinnerImageUri:
-          List<String>.from(json['userHistoryResponse']['dinnerImageUri']),
-      dinnerFoods:
-          List<String>.from(json['userHistoryResponse']['dinnerFoods']),
-      todayImageUri:
-          List<String>.from(json['userHistoryResponse']['todayImageUri']),
-      todayVideoUri:
-          List<String>.from(json['userHistoryResponse']['todayVideoUri']),
+      breakfastImageUri: List<String>.from(json['userHistoryResponse']['breakfastImageUri'] ?? []),
+      breakfastFoods: List<String>.from(json['userHistoryResponse']['breakfastFoods'] ?? []),
+      lunchImageUri: List<String>.from(json['userHistoryResponse']['lunchImageUri'] ?? []),
+      lunchFoods: List<String>.from(json['userHistoryResponse']['lunchFoods'] ?? []),
+      dinnerImageUri: List<String>.from(json['userHistoryResponse']['dinnerImageUri'] ?? []),
+      dinnerFoods: List<String>.from(json['userHistoryResponse']['dinnerFoods'] ?? []),
+      todayImageUri: List<String>.from(json['userHistoryResponse']['todayImageUri'] ?? []),
+      todayVideoUri: List<String>.from(json['userHistoryResponse']['todayVideoUri'] ?? []),
       exerciseHistoryResponse: (json['exerciseHistoryResponse'] as List)
           .map((exercise) => ExerciseHistoryResponse.fromJson(exercise))
           .toList(),
@@ -128,8 +77,7 @@ class ExerciseHistoryResponse {
   factory ExerciseHistoryResponse.fromJson(Map<String, dynamic> json) {
     // 날짜 리스트를 DateTime 객체로 변환
     List<int> createdAtList = List<int>.from(json['createdAt']);
-    DateTime createdAt =
-        DateTime(createdAtList[0], createdAtList[1], createdAtList[2]);
+    DateTime createdAt = DateTime(createdAtList[0], createdAtList[1], createdAtList[2]);
 
     return ExerciseHistoryResponse(
       id: json['id'] as int,
@@ -173,9 +121,9 @@ Future<List<TodayHistoryModel>> historyRequest() async {
   var apiUrl = '$baseUrl/history/month';
   var http = CustomHttpClient();
 
-  var response = await http.get<ApiResponse<List<TodayHistoryModel>>>(apiUrl, create: (Map<String, dynamic> json) {
-    var list = json['data'] as List;
-    return ApiResponse(success: json['success'], data: list.map((item) => TodayHistoryModel.fromJson(item)).toList());
+  var response = await http.get<List<TodayHistoryModel>>(apiUrl, create: (json) {
+    var list = json as List<dynamic>;
+    return list.map((item) => TodayHistoryModel.fromJson(item)).toList();
   });
 
   if (response is ApiResponse<List<TodayHistoryModel>>) {

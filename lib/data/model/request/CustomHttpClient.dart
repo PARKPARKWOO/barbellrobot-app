@@ -9,13 +9,17 @@ class CustomHttpClient {
 
   CustomHttpClient._internal();
 
-  Future<dynamic> get<T>(String url, {Map<String, String>? headers, required T Function(Map<String, dynamic>) create}) async {
+  Future<dynamic> get<T>(
+      String url, {
+        Map<String, String>? headers,
+        required T Function(dynamic) create,
+      }) async {
     final prefs = await SharedPreferences.getInstance();
     final String? accessToken = prefs.getString('accessToken');
 
     Map<String, String> header = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken'
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': 'Bearer $accessToken',
     };
     if (headers != null) {
       header.addAll(headers);
@@ -25,25 +29,44 @@ class CustomHttpClient {
     return _handleResponse(response, create, requestType: 'GET', url: url, headers: header);
   }
 
-  Future<dynamic> post<T>(String url, {Map<String, String>? headers, dynamic body, Encoding? encoding, required T Function(Map<String, dynamic>) create}) async {
+  Future<dynamic> post<T>(
+      String url, {
+        Map<String, String>? headers,
+        dynamic body,
+        Encoding? encoding,
+        required T Function(dynamic) create,
+      }) async {
     final prefs = await SharedPreferences.getInstance();
     final String? accessToken = prefs.getString('accessToken');
 
     Map<String, String> header = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $accessToken'
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': 'Bearer $accessToken',
     };
     if (headers != null) {
       header.addAll(headers);
     }
 
-    final response = await http.post(Uri.parse(url),
-        headers: header, body: jsonEncode(body), encoding: encoding);
+    final response = await http.post(
+      Uri.parse(url),
+      headers: header,
+      body: jsonEncode(body),
+      encoding: encoding ?? Encoding.getByName('utf-8'),
+    );
     return _handleResponse(response, create, requestType: 'POST', url: url, headers: header, body: body, encoding: encoding);
   }
 
-  Future<dynamic> _handleResponse<T>(http.Response response, T Function(Map<String, dynamic>) create, {required String requestType, required String url, Map<String, String>? headers, dynamic body, Encoding? encoding}) async {
-    final Map<String, dynamic> responseJson = jsonDecode(response.body);
+  Future<dynamic> _handleResponse<T>(
+      http.Response response,
+      T Function(dynamic) create, {
+        required String requestType,
+        required String url,
+        Map<String, String>? headers,
+        dynamic body,
+        Encoding? encoding,
+      }) async {
+    final responseBody = utf8.decode(response.bodyBytes);
+    final dynamic responseJson = jsonDecode(responseBody);
 
     if (response.statusCode == 200) {
       if (responseJson['success'] == false && responseJson['code'] == 'EXPIRED_JWT') {
@@ -75,15 +98,18 @@ class CustomHttpClient {
     String? refreshToken = prefs.getString('refreshToken');
     var apiUrl = 'YOUR_API_BASE_URL'; // Your API base URL
     Map<String, String> header = {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json; charset=UTF-8',
     };
     var data = {'refreshToken': refreshToken};
-    var response = await http.post(Uri.parse('$apiUrl/sign-in/reissue'),
-        headers: header, body: json.encode(data));
+    var response = await http.post(
+      Uri.parse('$apiUrl/sign-in/reissue'),
+      headers: header,
+      body: jsonEncode(data),
+    );
 
     if (response.statusCode == 200) {
-      var newToken = json.decode(response.body)['data']['accessToken'];
-      var newRefreshToken = json.decode(response.body)['data']['refreshToken'];
+      var newToken = jsonDecode(utf8.decode(response.bodyBytes))['data']['accessToken'];
+      var newRefreshToken = jsonDecode(utf8.decode(response.bodyBytes))['data']['refreshToken'];
       prefs.setString('accessToken', newToken);
       prefs.setString('refreshToken', newRefreshToken);
     } else {
@@ -99,14 +125,14 @@ class ApiResponse<T> {
 
   ApiResponse({required this.success, required this.data});
 
-  factory ApiResponse.fromJson(Map<String, dynamic> json, Function(Map<String, dynamic>) create) {
+  factory ApiResponse.fromJson(Map<String, dynamic> json, T Function(dynamic) create) {
     return ApiResponse(
       success: json['success'],
       data: create(json['data']),
     );
   }
 
-  Map<String, dynamic> toJson(Function(T) create) {
+  Map<String, dynamic> toJson(T Function(T) create) {
     return {
       'success': success,
       'data': create(data),

@@ -20,18 +20,7 @@ class _MemberMainPageState extends State<MemberMainPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-        title: '운동 관리',
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: () {
-              // 설정 화면으로 이동 또는 설정 관련 로직
-              print('Settings tapped');
-            },
-          ),
-        ],
-      ),
+      appBar: CustomMemberTopAppBar(),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

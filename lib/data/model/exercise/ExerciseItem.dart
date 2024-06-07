@@ -61,12 +61,10 @@ Future<List<ExerciseItemDetail>> findAllItemDetail() async {
   var apiUrl = '$baseUrl/items';
   var http = CustomHttpClient();
 
-  var response = await http.get<ApiResponse<List<ExerciseItemDetail>>>(apiUrl,
-      create: (Map<String, dynamic> json) {
+  var response = await http.get<List<ExerciseItemDetail>>(apiUrl,
+      create: (json) {
     var list = json['data'] as List;
-    return ApiResponse(
-        success: json['success'],
-        data: list.map((item) => ExerciseItemDetail.fromJson(item)).toList());
+    return list.map((item) => ExerciseItemDetail.fromJson(item)).toList();
   });
 
   if (response is ApiResponse<List<ExerciseItemDetail>>) {
