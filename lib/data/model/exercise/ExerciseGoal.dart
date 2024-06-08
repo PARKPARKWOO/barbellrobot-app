@@ -1,7 +1,7 @@
 import 'dart:ffi';
 
 class ExerciseGoal {
-  Long id;
+  int id;
   String goal;
 
   ExerciseGoal({required this.id, required this.goal});

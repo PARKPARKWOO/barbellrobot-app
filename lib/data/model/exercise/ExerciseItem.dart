@@ -7,7 +7,7 @@ import '../../../config/app_configs.dart';
 import '../request/CustomHttpClient.dart';
 
 class ExerciseItem {
-  Long id;
+  int id;
   String exerciseName;
   String? videoUrl;
   String? imageUrl;
@@ -21,7 +21,7 @@ class ExerciseItem {
 }
 
 class ExerciseItemDetail {
-  Long id;
+  int id;
   String exerciseName;
   String? videoUri;
   String? imageUrl;
@@ -63,7 +63,7 @@ Future<List<ExerciseItemDetail>> findAllItemDetail() async {
 
   var response = await http.get<List<ExerciseItemDetail>>(apiUrl,
       create: (json) {
-    var list = json['data'] as List;
+    var list = json as List<dynamic>;
     return list.map((item) => ExerciseItemDetail.fromJson(item)).toList();
   });
 

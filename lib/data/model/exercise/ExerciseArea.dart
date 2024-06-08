@@ -1,7 +1,7 @@
 import 'dart:ffi';
 
 class ExerciseArea {
-  Long id;
+  int id;
   String area;
 
   ExerciseArea({required this.id, required this.area});
