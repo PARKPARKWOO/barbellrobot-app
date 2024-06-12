@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:health/config/app_configs.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -96,7 +97,7 @@ class CustomHttpClient {
   Future<void> refreshToken() async {
     final prefs = await SharedPreferences.getInstance();
     String? refreshToken = prefs.getString('refreshToken');
-    var apiUrl = 'YOUR_API_BASE_URL'; // Your API base URL
+    var apiUrl = AppConfigs().apiUrl; // Your API base URL
     Map<String, String> header = {
       'Content-Type': 'application/json; charset=UTF-8',
     };

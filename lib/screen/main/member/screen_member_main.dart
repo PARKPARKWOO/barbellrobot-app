@@ -28,12 +28,16 @@ class _MemberMainPageState extends State<MemberMainPage> {
           children: [
             ElevatedButton(
               onPressed: () async {
+                DateTime month = DateTime.now();
+                String key = '${month.year}-${month.month}';
                 var historyList = await historyRequest();
+                var historyMap = <String, List<TodayHistoryModel>>{}; // 빈 맵 생성
+                historyMap[key] = historyList; // 키-값 쌍 추가
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) =>
-                        CalendarPage(historyList: historyList),
+                        CalendarPage(historyMap: historyMap, ),
                   ),
                 );
               },

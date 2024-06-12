@@ -9,22 +9,31 @@ import '../request/CustomHttpClient.dart';
 class ExerciseItem {
   int id;
   String exerciseName;
-  String? videoUrl;
-  String? imageUrl;
+  List<String> videoUrl;
+  List<String> imageUrl;
 
   ExerciseItem({
     required this.id,
     required this.exerciseName,
-    this.videoUrl,
-    this.imageUrl,
+    required this.videoUrl,
+    required this.imageUrl,
   });
+
+  factory ExerciseItem.fromJson(Map<String, dynamic> json) {
+    return ExerciseItem(
+      id: json['id'],
+      exerciseName: json['exerciseName'],
+      videoUrl: List<String>.from(json['videoUrl'] ?? []),
+      imageUrl: List<String>.from(json['imageUrl'] ?? []),
+    );
+  }
 }
 
 class ExerciseItemDetail {
   int id;
   String exerciseName;
-  String? videoUri;
-  String? imageUrl;
+  List<String> videoUri;
+  List<String> imageUrl;
   List<ExerciseArea> exerciseAreas;
   List<ExerciseGoal> exerciseGoals;
   int count;
@@ -32,8 +41,8 @@ class ExerciseItemDetail {
   ExerciseItemDetail({
     required this.id,
     required this.exerciseName,
-    this.videoUri,
-    this.imageUrl,
+    required this.videoUri,
+    required this.imageUrl,
     required this.exerciseAreas,
     required this.exerciseGoals,
     required this.count,
@@ -43,15 +52,17 @@ class ExerciseItemDetail {
     return ExerciseItemDetail(
       id: json['id'],
       exerciseName: json['exerciseName'],
-      videoUri: json['videoUri'],
-      imageUrl: json['imageUri'],
-      exerciseAreas: (json['exerciseAreas'] as List)
-          .map((area) => ExerciseArea.fromJson(area))
-          .toList(),
-      exerciseGoals: (json['exerciseGoals'] as List)
-          .map((goal) => ExerciseGoal.fromJson(goal))
-          .toList(),
-      count: json['count'],
+      videoUri: List<String>.from(json['videoUri'] ?? []),
+      imageUrl: List<String>.from(json['imageUrl'] ?? []),
+      exerciseAreas: (json['exerciseAreas'] as List?)
+          ?.map((area) => ExerciseArea.fromJson(area))
+          .toList() ??
+          [],
+      exerciseGoals: (json['exerciseGoals'] as List?)
+          ?.map((goal) => ExerciseGoal.fromJson(goal))
+          .toList() ??
+          [],
+      count: json['count'] ?? 0,
     );
   }
 }
@@ -61,8 +72,7 @@ Future<List<ExerciseItemDetail>> findAllItemDetail() async {
   var apiUrl = '$baseUrl/items';
   var http = CustomHttpClient();
 
-  var response = await http.get<List<ExerciseItemDetail>>(apiUrl,
-      create: (json) {
+  var response = await http.get<List<ExerciseItemDetail>>(apiUrl, create: (json) {
     var list = json as List<dynamic>;
     return list.map((item) => ExerciseItemDetail.fromJson(item)).toList();
   });

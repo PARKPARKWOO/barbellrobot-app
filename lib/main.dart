@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:health/data/model/request/CustomHttpClient.dart';
 import 'package:health/screen/main/member/screen_member_main.dart';
+import 'package:health/screen/main/member/screen_member_main_page.dart';
 import 'package:intl/date_symbol_data_local.dart'; // 수정된 임포트
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health/screen/screen_home.dart';
@@ -39,7 +40,7 @@ class MyApp extends StatelessWidget {
       initialRoute: initialRoute,
       routes: {
         '/signIn': (context) => SignInScreen(),
-        '/member/home': (context) => MemberMainPage(),
+        '/member/home': (context) => MemberMainPageFromFigma(),
       },
       supportedLocales: [
         Locale('en', ''), // 영어

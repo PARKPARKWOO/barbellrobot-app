@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../../config/app_configs.dart';
 import '../../../data/model/history/HistoryModel.dart';
+import '../../../data/model/request/CustomHttpClient.dart';
 
 class CalendarPage extends StatefulWidget {
-  final List<TodayHistoryModel> historyList;
+  final Map<String, List<TodayHistoryModel>> historyMap;
 
-  const CalendarPage({super.key, required this.historyList});
+  const CalendarPage({super.key, required this.historyMap});
 
   @override
   State<StatefulWidget> createState() => _CalendarPageState();
@@ -15,18 +17,55 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   late DateTime _focusedDay;
   DateTime? _selectedDay;
+  late Map<String, List<TodayHistoryModel>> _historyMap;
 
   @override
   void initState() {
     super.initState();
     _focusedDay = DateTime.now();
     _selectedDay = _focusedDay;
+    _historyMap = widget.historyMap;
   }
 
-  @override
-  void dispose() {
-    // 여기서 필요한 리소스를 해제합니다.
-    super.dispose();
+  Future<void> _fetchHistoryForMonth(DateTime month) async {
+    String monthKey = '${month.year}-${month.month}';
+    if (_historyMap.containsKey(monthKey)) {
+      _historyMap.remove(monthKey);
+    }
+
+    var baseUrl = AppConfigs().apiUrl;
+    var apiUrl = '$baseUrl/history/month?month=${month.month}&year=${month.year}';
+    var httpClient = CustomHttpClient();
+
+    try {
+      var response = await httpClient.get<List<TodayHistoryModel>>(apiUrl, create: (json) {
+        return (json as List).map((item) => TodayHistoryModel.fromJson(item)).toList();
+      });
+
+      if (response is ApiResponse<List<TodayHistoryModel>>) {
+        setState(() {
+          _historyMap[monthKey] = response.data;
+        });
+      } else if (response is ErrorResponse) {
+        // Handle the error response
+        print('Error: ${response.message}');
+      } else {
+        throw Exception('Unexpected response type');
+      }
+    } catch (e) {
+      // Handle any errors that occur during the request
+      print("Error: $e");
+    }
+  }
+
+  List<TodayHistoryModel> _getEventsForDay(DateTime day) {
+    String monthKey = '${day.year}-${day.month}';
+    if (_historyMap.containsKey(monthKey)) {
+      return _historyMap[monthKey]!
+          .where((history) => isSameDay(history.today, day))
+          .toList();
+    }
+    return [];
   }
 
   @override
@@ -43,6 +82,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 setState(() {
                   _focusedDay = focusedDay;
                 });
+                _fetchHistoryForMonth(focusedDay);
               },
               locale: 'ko_KR',
               firstDay: DateTime.utc(2010, 10, 16),
@@ -69,8 +109,28 @@ class _CalendarPageState extends State<CalendarPage> {
                 ),
                 weekendTextStyle: TextStyle().copyWith(color: Colors.red),
               ),
+              eventLoader: _getEventsForDay,
               onDaySelected: _onDaySelected,
             ),
+            ..._getEventsForDay(_selectedDay!).map(
+                  (history) => ListTile(
+                title: Text('User History for ${history.today}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Attendance: ${history.attendance}'),
+                    Text('Breakfast Image URIs: ${history.breakfastImageUri.join(", ")}'),
+                    Text('Lunch Image URIs: ${history.lunchImageUri.join(", ")}'),
+                    Text('Dinner Image URIs: ${history.dinnerImageUri.join(", ")}'),
+                    Text('Today Image URIs: ${history.todayImageUri.join(", ")}'),
+                    Text('Today Video URIs: ${history.todayVideoUri.join(", ")}'),
+                    ...history.exerciseHistoryResponse.map((exerciseHistory) {
+                      return Text('Exercise History ID: ${exerciseHistory.id}, Weight: ${exerciseHistory.weight}');
+                    }).toList(),
+                  ],
+                ),
+              ),
+            ).toList(),
           ],
         ),
       ),
@@ -83,13 +143,7 @@ class _CalendarPageState extends State<CalendarPage> {
       _focusedDay = focusedDay;
     });
 
-    // 일치하는 UserHistory 및 ExerciseHistory 정보를 찾고 표시
-    List<TodayHistoryModel> matchedHistories =
-        widget.historyList.where((historyModel) {
-      return isSameDay(historyModel.today, selectedDay);
-      // ||
-      // historyModel.exerciseHistoryResponse.any((e) => isSameDay(e.createdAt, selectedDay));
-    }).toList();
+    List<TodayHistoryModel> matchedHistories = _getEventsForDay(selectedDay);
 
     if (matchedHistories.isNotEmpty) {
       showDialog(
@@ -97,28 +151,20 @@ class _CalendarPageState extends State<CalendarPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('이날은 뭐했을까요~'),
-            // TODO: 운동, 식단 입력하기 칸 추가
             content: SingleChildScrollView(
               child: ListBody(
                 children: matchedHistories.expand((history) {
                   List<Widget> children = [
                     Text('User History for ${history.today}:'),
                     Text('Attendance: ${history.attendance}'),
-                    Text(
-                        'Breakfast Image URIs: ${history.breakfastImageUri.join(", ")}'),
-                    Text(
-                        'Lunch Image URIs: ${history.lunchImageUri.join(", ")}'),
-                    Text(
-                        'Dinner Image URIs: ${history.dinnerImageUri.join(", ")}'),
-                    Text(
-                        'Today Image URIs: ${history.todayImageUri.join(", ")}'),
-                    Text(
-                        'Today Video URIs: ${history.todayVideoUri.join(", ")}'),
+                    Text('Breakfast Image URIs: ${history.breakfastImageUri.join(", ")}'),
+                    Text('Lunch Image URIs: ${history.lunchImageUri.join(", ")}'),
+                    Text('Dinner Image URIs: ${history.dinnerImageUri.join(", ")}'),
+                    Text('Today Image URIs: ${history.todayImageUri.join(", ")}'),
+                    Text('Today Video URIs: ${history.todayVideoUri.join(", ")}'),
                   ];
-                  children.addAll(
-                      history.exerciseHistoryResponse.map((exerciseHistory) {
-                    return Text(
-                        'Exercise History ID: ${exerciseHistory.id}, Weight: ${exerciseHistory.weight}');
+                  children.addAll(history.exerciseHistoryResponse.map((exerciseHistory) {
+                    return Text('Exercise History ID: ${exerciseHistory.id}, Weight: ${exerciseHistory.weight}');
                   }));
                   return children;
                 }).toList(),
@@ -142,7 +188,6 @@ class _CalendarPageState extends State<CalendarPage> {
           return AlertDialog(
             title: Text('이날은 운동안했어요 ㅠ'),
             actions: <Widget>[
-              // TODO: 운동, 식단 입력하기 칸 추가
               TextButton(
                 child: Text('Close'),
                 onPressed: () {
