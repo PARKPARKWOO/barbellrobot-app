@@ -1,12 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:health/data/model/ai/ConsultingModel.dart';
+import 'package:health/screen/main/ai/screen_request_consulting.dart';
 import 'package:health/screen/main/member/screen_member_calendar.dart';
 import 'package:health/screen/main/member/screen_member_exercise.dart';
-
 import '../../../data/model/exercise/ExerciseItem.dart';
 import '../../../data/model/history/HistoryModel.dart';
 import '../../../data/model/history/StartExercise.dart';
 import '../../bar/MemberBottomNaviBar.dart';
+import '../ai/screen_consulting.dart';
 
 class MemberMainPageFromFigma extends StatefulWidget {
   @override
@@ -37,9 +39,33 @@ class MemberMainPageFromFigmaState extends State<MemberMainPageFromFigma> {
     );
   }
 
+  void _navigatePtInputPage() async {
+    var has = await hasPt();
+    if (has) {
+      var model = await getConsulting();
+      var itemDetails = await findAllItemDetail(
+          model.days.expand((day) => day.consultingExercise.map((exercise) => exercise.exerciseId)).toList()
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ConsultingPage(
+              model: model,
+              exerciseItemDetails: itemDetails,
+            )),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => ExerciseInputPage()),
+      );
+    }
+  }
+
   void _navigateToMemberExercisePage() async {
     String userHistoryId = await loadTodayHistoryId();
-    List<ExerciseItemDetail> exerciseItemDetail = await findAllItemDetail();
+    List<ExerciseItemDetail> exerciseItemDetail = await findAllItemDetail(null);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -86,7 +112,7 @@ class MemberMainPageFromFigmaState extends State<MemberMainPageFromFigma> {
           child: _buildIconTextButton(
             '💪',
             'AI PT 받기',
-            null,
+            _navigatePtInputPage,
           ),
         ),
         const SizedBox(width: 8),
@@ -101,7 +127,8 @@ class MemberMainPageFromFigmaState extends State<MemberMainPageFromFigma> {
     );
   }
 
-  Widget _buildIconTextButton(String icon, String text, void Function()? onTap) {
+  Widget _buildIconTextButton(
+      String icon, String text, void Function()? onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(

@@ -1,3 +1,6 @@
+import '../../../config/app_configs.dart';
+import '../request/CustomHttpClient.dart';
+
 class ConsultingModel {
   String greetingMessage;
   List<Day> days;
@@ -52,7 +55,7 @@ class Day {
     return {
       'target': target,
       'consultingExercise':
-          consultingExercise.map((exercise) => exercise.toJson()).toList(),
+      consultingExercise.map((exercise) => exercise.toJson()).toList(),
     };
   }
 }
@@ -90,5 +93,67 @@ class ConsultingExercise {
       'count': count,
       'advice': advice,
     };
+  }
+}
+
+Future<ConsultingModel> requestConsulting(int day, int time) async {
+  var baseUrl = AppConfigs().apiUrl;
+  var apiUrl = '$baseUrl/pt'; // Your API endpoint
+  var httpClient = CustomHttpClient();
+
+  var body = {"day": day, "time": time};
+  var response = await httpClient.post<ConsultingModel>(apiUrl, body: body,
+      create: (json) {
+        return ConsultingModel.fromJson(json);
+      });
+  if (response is ApiResponse<ConsultingModel>) {
+    return response.data;
+  } else {
+    throw Exception('Unexpected response type');
+  }
+}
+
+Future<ConsultingModel> getConsulting() async {
+  var baseUrl = AppConfigs().apiUrl;
+  var apiUrl = '$baseUrl/pt'; // Your API endpoint
+  var httpClient = CustomHttpClient();
+
+  var response =
+  await httpClient.get<ConsultingModel>(apiUrl, create: (json) {
+    return ConsultingModel.fromJson(json);
+  });
+  if (response is ApiResponse<ConsultingModel>) {
+    return response.data;
+  } else {
+    throw Exception('Unexpected response type');
+  }
+}
+
+Future<bool> hasPt() async {
+  var baseUrl = AppConfigs().apiUrl;
+  var apiUrl = '$baseUrl/pt/check';
+  var http = CustomHttpClient();
+
+  var response =
+  await http.get<HasPtModel>(apiUrl, create: (json) {
+    return HasPtModel.fromJson(json);
+  });
+  if (response is ApiResponse<HasPtModel>)
+  {
+    return response.data.hasPt;
+  } else {
+  throw Exception('Unexpected response type');
+  }
+}
+
+class HasPtModel {
+  bool hasPt;
+
+  HasPtModel({required this.hasPt});
+
+  factory HasPtModel.fromJson(Map<String, dynamic> json) {
+    return HasPtModel(
+        hasPt: json['hasPt']
+    );
   }
 }

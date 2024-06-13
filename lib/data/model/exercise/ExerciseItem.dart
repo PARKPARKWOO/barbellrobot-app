@@ -55,24 +55,34 @@ class ExerciseItemDetail {
       videoUri: List<String>.from(json['videoUri'] ?? []),
       imageUrl: List<String>.from(json['imageUrl'] ?? []),
       exerciseAreas: (json['exerciseAreas'] as List?)
-          ?.map((area) => ExerciseArea.fromJson(area))
-          .toList() ??
+              ?.map((area) => ExerciseArea.fromJson(area))
+              .toList() ??
           [],
       exerciseGoals: (json['exerciseGoals'] as List?)
-          ?.map((goal) => ExerciseGoal.fromJson(goal))
-          .toList() ??
+              ?.map((goal) => ExerciseGoal.fromJson(goal))
+              .toList() ??
           [],
       count: json['count'] ?? 0,
     );
   }
 }
 
-Future<List<ExerciseItemDetail>> findAllItemDetail() async {
+Future<List<ExerciseItemDetail>> findAllItemDetail(List<int>? ids) async {
   var baseUrl = AppConfigs().apiUrl;
   var apiUrl = '$baseUrl/items';
+
+  // Check if ids is not null and not empty
+  if (ids != null && ids.isNotEmpty) {
+    // Convert ids to a comma-separated string
+    String idsParam = ids.join(',');
+    // Append the ids parameter to the apiUrl
+    apiUrl = '$apiUrl?itemIds=$idsParam';
+  }
+
   var http = CustomHttpClient();
 
-  var response = await http.get<List<ExerciseItemDetail>>(apiUrl, create: (json) {
+  var response =
+  await http.get<List<ExerciseItemDetail>>(apiUrl, create: (json) {
     var list = json as List<dynamic>;
     return list.map((item) => ExerciseItemDetail.fromJson(item)).toList();
   });
