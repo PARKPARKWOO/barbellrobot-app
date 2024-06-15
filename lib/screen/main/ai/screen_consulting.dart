@@ -47,7 +47,8 @@ class ConsultingPage extends StatelessWidget {
                     ],
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.start,
@@ -141,7 +142,7 @@ class ConsultingPage extends StatelessWidget {
                       ),
                       children: day.consultingExercise.map((exercise) {
                         final exerciseDetail = exerciseItemDetails.firstWhere(
-                              (item) => item.id == exercise.exerciseId,
+                          (item) => item.id == exercise.exerciseId,
                           orElse: () => ExerciseItemDetail(
                             id: -1,
                             exerciseName: 'Unknown',
@@ -197,7 +198,8 @@ class ConsultingPage extends StatelessWidget {
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         exerciseDetail.exerciseName,
@@ -208,14 +210,41 @@ class ConsultingPage extends StatelessWidget {
                                           fontWeight: FontWeight.w400,
                                         ),
                                       ),
-                                      Text(
-                                        '${exercise.count} min',
-                                        style: TextStyle(
-                                          color: Colors.black.withOpacity(0.5),
-                                          fontSize: 12,
-                                          fontFamily: 'Roboto',
-                                          fontWeight: FontWeight.w400,
-                                        ),
+                                      Row(
+                                        children: [
+                                          const SizedBox(width: 8),
+                                          ElevatedButton(
+                                            onPressed: () {
+                                              showDialog(
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return AlertDialog(
+                                                    title: Text('Advice'),
+                                                    content:
+                                                        Text(exercise.advice),
+                                                    actions: [
+                                                      TextButton(
+                                                        child: Text('OK'),
+                                                        onPressed: () {
+                                                          Navigator.of(context)
+                                                              .pop();
+                                                        },
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            },
+                                            child: Text(
+                                              'Advice',
+                                              style: TextStyle(
+                                                color: Colors.blueGrey,
+                                                fontSize: 7,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -248,10 +277,12 @@ class ConsultingPage extends StatelessWidget {
                   child: Container(
                     width: double.infinity,
                     height: 42,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
                     decoration: ShapeDecoration(
                       color: Colors.black,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                     ),
                     child: Center(
                       child: Text(

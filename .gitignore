@@ -41,3 +41,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# local env
+/ios/Runner/Storage.swift
+.env*
+lib/env/env.g.dart
+lib/env/env.dart
+lib/env*

@@ -314,6 +314,7 @@ import 'package:health/screen/main/member/screen_member_main_page.dart';
 import 'package:health/screen/sign/screen_sign_up_email.dart';
 import 'package:http/http.dart' as http;
 import 'package:health/data/model/user/sign/SignInRequest.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -367,10 +368,11 @@ class LoginPage extends StatelessWidget {
     } else {
       userType = "트레이너";
     }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('$userType 로그인'),
-        backgroundColor: Colors.deepPurpleAccent, // 앱 바의 색상을 변경합니다.
+        backgroundColor: Colors.deepPurple[50], // 앱 바의 색상을 변경합니다.
       ),
       body: SingleChildScrollView(
         // 키보드가 나타나도 스크롤이 가능하도록 합니다.
@@ -402,36 +404,99 @@ class LoginPage extends StatelessWidget {
               SizedBox(height: 40),
               SizedBox(
                 width: double.infinity, // 버튼의 너비를 최대로 설정합니다.
-                child: ElevatedButton(
-                  onPressed: () async {
-                    // http request
-                    bool response = await signIn(emailController.text, passwordController.text, type);
-                    print("login = $response");
-                    if (!response) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요'),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () async {
+                          // http request
+                          bool response = await signIn(emailController.text, passwordController.text, type);
+                          print("login = $response");
+                          if (!response) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요'),
+                              ),
+                            );
+                          } else if (type == 'member') {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(builder: (context) => MemberMainPageFromFigma()),
+                                  (Route<dynamic> route) => false,
+                            );
+                          }
+                          // if (type == 'trainer') {
+                          //
+                          // }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: ShapeDecoration(
+                            color: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(width: 1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                '로그인',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 20,
+                                  fontFamily: 'Roboto',
+                                  fontWeight: FontWeight.w500,
+                                  height: 0.2,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      );
-                    } else if (type == 'member') {
-                      Navigator.pushAndRemoveUntil(
-                        context,
-                        MaterialPageRoute(builder: (context) => MemberMainPageFromFigma()),
-                            (Route<dynamic> route) => false,
-                      );
-                    }
-                    // if (type == 'trainer') {
-                    //
-                    // }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurpleAccent, // 버튼 색상을 변경합니다.
-                    padding: EdgeInsets.symmetric(vertical: 15.0), // 버튼 내부 패딩을 조정합니다.
-                  ),
-                  child: Text(
-                    '로그인',
-                    style: TextStyle(fontSize: 18, color: Colors.black),
-                  ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          // 회원가입 페이지로 이동
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => SignUpEmail(type: type),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: ShapeDecoration(
+                            color: Colors.black,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                '회원가입',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontFamily: 'Roboto',
+                                  fontWeight: FontWeight.w500,
+                                  height: 0.2,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               SizedBox(height: 20),

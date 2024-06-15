@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:health/data/model/request/CustomHttpClient.dart';
+import 'package:health/data/model/user/sign/social/KakaoLogin.dart';
+import 'package:health/env/env.dart';
 import 'package:health/screen/main/member/screen_member_main.dart';
 import 'package:health/screen/main/member/screen_member_main_page.dart';
 import 'package:intl/date_symbol_data_local.dart'; // 수정된 임포트
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:health/screen/screen_home.dart';
 import 'package:health/screen/sign/screen_sign_in.dart';
@@ -23,6 +26,14 @@ void main() async {
       accessToken = null;
     }
   }
+
+  // 카카오 로그인 init (before run)
+  WidgetsFlutterBinding.ensureInitialized();
+
+  KakaoSdk.init(
+    nativeAppKey: Env.kakaoNativeKey,
+  );
+
   runApp(MyApp(
     initialRoute: accessToken == null ? '/signIn' : '/$type/home',
   ));
