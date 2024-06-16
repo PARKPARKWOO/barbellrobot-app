@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:health/config/app_configs.dart';
+import 'package:health/data/model/request/CustomHttpClient.dart';
 import 'package:health/data/model/user/sign/JwtTokenModel.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -16,8 +17,7 @@ class SignInRequest {
   Map<String, dynamic> toJson() => {'email': email, 'password': password};
 }
 
-Future<bool> signIn(
-    String email, String password, String type) async {
+Future<bool> signIn(String email, String password, String type) async {
   try {
     final apiUrl = AppConfigs().apiUrl;
     final url = Uri.parse('$apiUrl/sign-in/email/$type');
@@ -53,4 +53,36 @@ Future<bool> signIn(
     return false;
   }
   return false;
+}
+
+Future<bool> signInSocial(
+    {required int age,
+    required int exerciseMonths,
+    required double tall,
+    required double weight,
+    double? skeletalMuscleMass,
+    required String gender,
+    required String nickname}) async {
+  var baseUrl = AppConfigs().apiUrl;
+  var apiUrl = '$baseUrl/member'; // Your API endpoint
+  var httpClient = CustomHttpClient();
+
+  var body = {
+    "age": age,
+    "exerciseMonths": exerciseMonths,
+    "tall": tall,
+    "weight": weight,
+    "skeletalMuscleMass": skeletalMuscleMass,
+    "gender": gender,
+    "nickname": nickname
+  };
+  var response =
+      await httpClient.post<void>(apiUrl, body: body, create: (json) {
+    return;
+  });
+  if (response is ApiResponse<void>) {
+    return response.success;
+  } else {
+    throw Exception('Unexpected response type');
+  }
 }

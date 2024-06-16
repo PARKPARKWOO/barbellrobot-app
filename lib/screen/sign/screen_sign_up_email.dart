@@ -25,42 +25,15 @@ class _SignUpEmailState extends State<SignUpEmail> {
   final authNumberController = TextEditingController();
   String _email = '';
   int? _authenticationNumber;
-  String _gender = 'MALE';
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
-  final nicknameController = TextEditingController();
-  String _nickname = '';
-  bool _isNicknameValid = false;
 
   // url
   var baseUrl = AppConfigs().apiUrl;
+
   Future<String?> loadAuthenticationString() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('authenticationString');
-  }
-
-
-  Future<void> verifyNickname(String nickname) async {
-    var url = Uri.parse('$baseUrl/sign-up/verify/nickname/$nickname');
-    var response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final responseJson = json.decode(response.body)['data'];
-      setState(() {
-        _isNicknameValid = responseJson['canNickname'];
-      });
-      if (!_isNicknameValid) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('닉네임이 이미 사용 중입니다.')));
-      } else {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('사용 가능한 닉네임입니다.')));
-        _nickname = nickname;
-      }
-    } else {
-      // 오류 처리
-      print('닉네임 검증 실패');
-    }
   }
 
   @override
@@ -76,22 +49,6 @@ class _SignUpEmailState extends State<SignUpEmail> {
             key: _formKey,
             child: Column(
               children: <Widget>[
-                DropdownButtonFormField<String>(
-                  value: _gender,
-                  decoration: InputDecoration(labelText: '성별'),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _gender = newValue!;
-                    });
-                  },
-                  items: <String>['MALE', 'FEMALE']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value == 'MALE' ? '남자' : '여자'),
-                    );
-                  }).toList(),
-                ),
                 // TextFormField(
                 //   controller: emailController,
                 //   decoration: InputDecoration(labelText: '이메일'),
@@ -209,34 +166,19 @@ class _SignUpEmailState extends State<SignUpEmail> {
                     return null;
                   },
                 ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: nicknameController,
-                        decoration: InputDecoration(labelText: '닉네임'),
-                      ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        verifyNickname(nicknameController.text);
-                      },
-                      child: Text('중복 확인'),
-                    ),
-                  ],
-                ),
                 ElevatedButton(
                   onPressed: () async {
-                    String? authenticationString = await loadAuthenticationString();
-                    if (_formKey.currentState!.validate() && _isNicknameValid && authenticationString != null) {
+                    String? authenticationString =
+                        await loadAuthenticationString();
+                    if (_formKey.currentState!.validate() &&
+                        authenticationString != null) {
                       if (widget.type == 'member') {
                         SignUpMemberDetails signUpDetails = SignUpMemberDetails(
                           email: emailController.text,
                           password: passwordController.text,
-                          nickname: nicknameController.text,
-                          gender: _gender,
                           // 'MALE' 또는 'FEMALE'
                           authenticationString: authenticationString,
+                          type: 'email',
                           // 다른 필드들은 SignUpPageTwo에서 입력받음
                         );
                         Navigator.push(
@@ -251,8 +193,6 @@ class _SignUpEmailState extends State<SignUpEmail> {
                             SignUpTrainerDetails(
                           email: emailController.text,
                           password: passwordController.text,
-                          nickname: nicknameController.text,
-                          gender: _gender,
                           authenticationString: authNumberController.text,
                         );
                         Navigator.push(

@@ -6,6 +6,4 @@ class JwtTokenModel {
     required this.accessToken,
     required this.refreshToken,
   });
-
-
 }

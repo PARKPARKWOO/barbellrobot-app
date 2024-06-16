@@ -106,7 +106,6 @@ Future<void> signUp({
   required String authenticationString,
   required String type,
 }) async {
-  final baseUrl = '10.0.2.2';
   final apiUrl = AppConfigs().apiUrl;
   final url = Uri.parse('$apiUrl/sign-up/email/$type');
 

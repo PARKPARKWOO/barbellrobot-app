@@ -312,9 +312,13 @@ import 'package:flutter/material.dart';
 import 'package:health/screen/main/member/screen_member_main.dart';
 import 'package:health/screen/main/member/screen_member_main_page.dart';
 import 'package:health/screen/sign/screen_sign_up_email.dart';
+import 'package:health/screen/sign/screen_sign_up_member_detail.dart';
 import 'package:http/http.dart' as http;
 import 'package:health/data/model/user/sign/SignInRequest.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../data/model/user/sign/SignUpDetails.dart';
+import '../../data/model/user/sign/social/KakaoLogin.dart';
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -518,6 +522,45 @@ class LoginPage extends StatelessWidget {
                   ),
                 ),
               ),
+              SizedBox(height: 20),
+              GestureDetector(
+                onTap: () async {
+                  // 카카오 로그인 처리
+                  try {
+                    var member = await KakaoLogin().signInWithKakao(type);
+                    if (member.memberInfo == null) {
+                      SignUpMemberDetails signUpDetails = SignUpMemberDetails(
+                        email: '',
+                        password: '',
+                        // 'MALE' 또는 'FEMALE'
+                        authenticationString: '',
+                        type: 'social',
+                        // 다른 필드들은 SignUpPageTwo에서 입력받음
+                      );
+                      // 회원가입 페이지 이동
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SignUpMemberPageTwo(
+                            signUpDetails: signUpDetails,
+                          ),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    print("카카오 로그인 실패 ${e.toString()}");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('카카오 로그인에 실패했습니다.'),
+                      ),
+                    );
+                  }
+                },
+                child: Image.asset(
+                  'assets/login/kakao_login_medium_wide.png',
+                  width: 250, // 버튼의 너비를 적절히 조정합니다.
+                ),
+              ),
             ],
           ),
         ),
@@ -525,6 +568,7 @@ class LoginPage extends StatelessWidget {
     );
   }
 }
+
 
 class TabGroup extends StatelessWidget {
   @override

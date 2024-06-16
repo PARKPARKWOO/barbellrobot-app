@@ -15,7 +15,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // 비동기 작업을 시작하기 전에 필요합니다.
   await initializeDateFormatting(); // 날짜 형식 데이터 초기화
   final prefs = await SharedPreferences.getInstance();
-
+  prefs.clear();
   String? accessToken = prefs.getString('accessToken');
   String? type;
   if (accessToken != null) {
